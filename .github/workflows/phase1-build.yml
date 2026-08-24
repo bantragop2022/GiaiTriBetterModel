@@ -18,22 +18,22 @@ jobs:
       matrix:
         include:
           - minecraft: "1.21.1"
-            adapter-task: ":core:bukkit-core:test"
+            gradle_tasks: ":bettermodel-core:bettermodel-bukkit-core:test"
             expected: "unsupported"
           - minecraft: "1.21.3"
-            adapter-task: ":core:bukkit-core:test"
+            gradle_tasks: ":bettermodel-core:bettermodel-bukkit-core:test"
             expected: "unsupported"
           - minecraft: "1.21.4"
-            adapter-task: ":nms:v1_21_R3:build"
+            gradle_tasks: ":nms:v1_21_R3:build :bettermodel-core:bettermodel-bukkit-core:test"
             expected: "adapter-v1_21_R3"
           - minecraft: "1.21.8"
-            adapter-task: ":nms:v1_21_R5:build"
+            gradle_tasks: ":nms:v1_21_R5:build :bettermodel-core:bettermodel-bukkit-core:test"
             expected: "adapter-v1_21_R5"
           - minecraft: "1.21.11"
-            adapter-task: ":nms:v1_21_R7:build"
+            gradle_tasks: ":nms:v1_21_R7:build :bettermodel-core:bettermodel-bukkit-core:test"
             expected: "adapter-v1_21_R7"
           - minecraft: "26.2"
-            adapter-task: ":nms:v26_R2:build"
+            gradle_tasks: ":nms:v26_R2:build :bettermodel-core:bettermodel-bukkit-core:test"
             expected: "latest-adapter"
     steps:
       - uses: actions/checkout@v7
@@ -43,8 +43,10 @@ jobs:
           java-version: "25"
           distribution: temurin
           cache: gradle
+      - name: Show resolved Gradle project paths
+        run: ./gradlew projects
       - name: Check Minecraft ${{ matrix.minecraft }} (${{ matrix.expected }})
-        run: ./gradlew ${{ matrix.adapter-task }} :core:bukkit-core:test --stacktrace
+        run: ./gradlew ${{ matrix.gradle_tasks }} --stacktrace
 
   build:
     needs: compatibility-matrix
@@ -65,8 +67,6 @@ jobs:
           name: GiaiTriBetterModel-${{ github.sha }}
           if-no-files-found: error
           path: |
-            platform/paper/build/libs/*.jar
-            platform/spigot/build/libs/*.jar
-            platform/fabric/build/libs/*.jar
-            !**/*-sources.jar
-            !**/*-javadoc.jar
+            build/libs/bettermodel-*-paper.jar
+            build/libs/bettermodel-*-spigot.jar
+            build/libs/bettermodel-*-fabric.jar
