@@ -19,7 +19,7 @@ import kr.toxicity.model.api.manager.ProfileManager
 import kr.toxicity.model.api.manager.ScriptManager
 import kr.toxicity.model.api.manager.SkinManager
 import kr.toxicity.model.api.pack.PackZipper
-import kr.toxicity.model.api.version.MinecraftVersion.*
+import kr.toxicity.model.bukkit.BukkitServerCompatibility.Adapter.*
 import kr.toxicity.model.bukkit.configuration.PluginConfiguration
 import kr.toxicity.model.bukkit.manager.CompatibilityManager
 import kr.toxicity.model.bukkit.manager.EntityManager
@@ -29,33 +29,26 @@ import kr.toxicity.model.bukkit.scheduler.PaperScheduler
 import kr.toxicity.model.manager.*
 import kr.toxicity.model.util.*
 import org.bstats.bukkit.Metrics
-import org.bukkit.Bukkit
 import org.semver4j.Semver
 
 private typealias Latest = kr.toxicity.model.bukkit.nms.v26_R2.NMSImpl
 
 internal class BetterModelProperties(
-    private val plugin: AbstractBetterModelPlugin
+    private val plugin: AbstractBetterModelPlugin,
+    compatibility: BukkitServerCompatibility.Supported
 ) {
     private lateinit var _config: BetterModelConfig
     private var _metrics: Metrics? = null
 
-    val version = parse(Bukkit.getBukkitVersion().substringBefore('-'))
-    val nms = when (version) {
+    val version = compatibility.version
+    val nms = when (compatibility.adapter) {
         V26_2 -> Latest()
-        V26_1, V26_1_1, V26_1_2 -> kr.toxicity.model.bukkit.nms.v26_R1.NMSImpl()
+        V26_1 -> kr.toxicity.model.bukkit.nms.v26_R1.NMSImpl()
         V1_21_11 -> kr.toxicity.model.bukkit.nms.v1_21_R7.NMSImpl()
-        V1_21_9, V1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
-        V1_21_6, V1_21_7, V1_21_8 -> kr.toxicity.model.bukkit.nms.v1_21_R5.NMSImpl()
+        V1_21_9_TO_1_21_10 -> kr.toxicity.model.bukkit.nms.v1_21_R6.NMSImpl()
+        V1_21_6_TO_1_21_8 -> kr.toxicity.model.bukkit.nms.v1_21_R5.NMSImpl()
         V1_21_5 -> kr.toxicity.model.bukkit.nms.v1_21_R4.NMSImpl()
         V1_21_4 -> kr.toxicity.model.bukkit.nms.v1_21_R3.NMSImpl()
-        else -> {
-            warn(
-                "Note: this version is officially untested.".toComponent(),
-                "So be careful to use!".toComponent()
-            )
-            Latest()
-        }
     }
     val scheduler = if (BetterModelBukkit.IS_FOLIA) PaperScheduler() else BukkitScheduler()
     val evaluator = BetterModelEvaluatorImpl()

@@ -1,0 +1,72 @@
+name: GiaiTriBetterModel Phase 1 build
+
+on:
+  push:
+    branches: [ "v3", "work" ]
+  pull_request:
+    branches: [ "v3" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - minecraft: "1.21.1"
+            adapter-task: ":core:bukkit-core:test"
+            expected: "unsupported"
+          - minecraft: "1.21.3"
+            adapter-task: ":core:bukkit-core:test"
+            expected: "unsupported"
+          - minecraft: "1.21.4"
+            adapter-task: ":nms:v1_21_R3:build"
+            expected: "adapter-v1_21_R3"
+          - minecraft: "1.21.8"
+            adapter-task: ":nms:v1_21_R5:build"
+            expected: "adapter-v1_21_R5"
+          - minecraft: "1.21.11"
+            adapter-task: ":nms:v1_21_R7:build"
+            expected: "adapter-v1_21_R7"
+          - minecraft: "26.2"
+            adapter-task: ":nms:v26_R2:build"
+            expected: "latest-adapter"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: gradle
+      - name: Check Minecraft ${{ matrix.minecraft }} (${{ matrix.expected }})
+        run: ./gradlew ${{ matrix.adapter-task }} :core:bukkit-core:test --stacktrace
+
+  build:
+    needs: compatibility-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: gradle
+      - name: Build and verify
+        run: ./gradlew clean build --stacktrace
+      - name: Upload runnable JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: GiaiTriBetterModel-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            platform/paper/build/libs/*.jar
+            platform/spigot/build/libs/*.jar
+            platform/fabric/build/libs/*.jar
+            !**/*-sources.jar
+            !**/*-javadoc.jar
