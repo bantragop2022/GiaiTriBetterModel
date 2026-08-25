@@ -57,7 +57,9 @@ bukkitPluginYaml {
             "play" to true,
             "version" to true,
             "hide" to true,
-            "show" to true
+            "show" to true,
+            "models" to true,
+            "stats" to true
         )
     }
 }

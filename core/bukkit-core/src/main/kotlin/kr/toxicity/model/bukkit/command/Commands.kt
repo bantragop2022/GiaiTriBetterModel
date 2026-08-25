@@ -12,6 +12,7 @@ import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityHideOption
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerModifier
@@ -66,8 +67,20 @@ fun startBukkitCommand() {
         "bettermodel",
         "All-related command.",
         { it.meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription()) },
-        "bm", "model"
+        "bm", "gbm", "model"
     ) {
+        create(
+            "models",
+            "Lists all loaded models."
+        ) {
+            handler(::models)
+        }
+        create(
+            "stats",
+            "Shows model and entity tracker statistics."
+        ) {
+            handler(::stats)
+        }
         create(
             "reload",
             "Reloads BetterModel.",
@@ -163,6 +176,29 @@ fun startBukkitCommand() {
             handler(::version)
         }
     }
+}
+
+private fun models(context: CommandContext<Audience>) {
+    val keys = BetterModel.modelKeys().sorted()
+    context.sender().info(
+        "Loaded models (${keys.size.withComma()}): ${keys.ifEmpty { listOf("none") }.joinToString(", ")}".toComponent()
+    )
+}
+
+private fun stats(context: CommandContext<Audience>) {
+    val registries = EntityTrackerRegistry.registries()
+    val trackers = registries.sumOf { it.trackers().size }
+    val displays = registries.sumOf { it.displays().count() }
+    context.sender().info(
+        emptyComponentOf(),
+        "GiaiTriBetterModel runtime statistics".toComponent(GREEN),
+        "Loaded models: ${BetterModel.models().size.withComma()}".toComponent(),
+        "Loaded player models: ${BetterModel.limbs().size.withComma()}".toComponent(),
+        "Tracked entities: ${registries.size.withComma()}".toComponent(),
+        "Active model trackers: ${trackers.withComma()}".toComponent(),
+        "Packet displays: ${displays.withComma()}".toComponent(),
+        emptyComponentOf()
+    )
 }
 
 private fun hide(context: CommandContext<Audience>) {

@@ -48,8 +48,34 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
 
     override fun onLoad() {
         super.onLoad()
+        val compatibility = BukkitServerCompatibility.detect(
+            MinecraftVersion.parse(Bukkit.getBukkitVersion().substringBefore('-'))
+        )
+        val platform = when {
+            IS_FOLIA -> "Folia"
+            IS_PURPUR -> "Purpur"
+            IS_PAPER -> "Paper"
+            else -> "Bukkit"
+        }
+        info("Minecraft server: ${compatibility.version}".toComponent(AQUA))
+        info("Platform: $platform".toComponent(AQUA))
+        when (compatibility) {
+            is BukkitServerCompatibility.Supported -> {
+                info("Compatibility adapter: ${compatibility.adapter.displayName}".toComponent(AQUA))
+                info("Status: Supported".toComponent(GREEN))
+            }
+            is BukkitServerCompatibility.Unsupported -> {
+                warn(
+                    "Compatibility adapter: none".toComponent(),
+                    "Status: Unsupported".toComponent(RED),
+                    "Unsupported Minecraft server version: ${compatibility.version}".toComponent(RED),
+                    compatibility.reason.toComponent(RED)
+                )
+                return Bukkit.getPluginManager().disablePlugin(this)
+            }
+        }
         props = runCatching {
-            BetterModelProperties(this)
+            BetterModelProperties(this, compatibility)
         }.getOrElse {
             warn(
                 "Unable to start BetterModel.".toComponent(),
@@ -62,6 +88,7 @@ abstract class BetterModelPlugin : AbstractBetterModelPlugin() {
     }
 
     override fun onEnable() {
+        if (!::props.isInitialized) return
         props.managers.values.forEach(GlobalManager::start)
         ADVENTURE_PLATFORM
         if (isSnapshot) warn(
