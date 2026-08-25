@@ -12,6 +12,7 @@ import kr.toxicity.model.api.BetterModelPlatform.ReloadResult.*
 import kr.toxicity.model.api.animation.AnimationIterator
 import kr.toxicity.model.api.animation.AnimationModifier
 import kr.toxicity.model.api.tracker.EntityHideOption
+import kr.toxicity.model.api.tracker.EntityTrackerRegistry
 import kr.toxicity.model.api.tracker.ModelScaler
 import kr.toxicity.model.api.tracker.Tracker
 import kr.toxicity.model.api.tracker.TrackerModifier
