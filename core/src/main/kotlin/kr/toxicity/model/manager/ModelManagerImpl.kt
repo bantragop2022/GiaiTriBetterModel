@@ -84,16 +84,12 @@ object ModelManagerImpl : ModelManager, GlobalManager {
     }
 
     private fun loadModels(pipeline: ReloadPipeline, zipper: PackZipper) {
+        migrateLegacyModels(DATA_FOLDER.getOrCreateDirectory("models"))
         ModelPipeline(zipper).use {
             if (CONFIG.module().model) it.addModelTo(
                 generalModelMap,
                 importModels(ModelRenderer.Type.GENERAL, pipeline, DATA_FOLDER.getOrCreateDirectory("models") { folder ->
-                    File(DATA_FOLDER.parent, "ModelEngine/blueprints")
-                        .takeIf(File::isDirectory)
-                        ?.run {
-                            copyRecursively(folder, overwrite = true)
-                            info("ModelEngine's models are successfully migrated.".toComponent(GREEN))
-                        } ?: run {
+                    run {
                         if (PLATFORM.version().useModernResource()) folder.addResource("demon_knight.bbmodel")
                         folder.addResource("blue_wizard.bbmodel")
                     }
@@ -106,6 +102,22 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 })
             )
         }
+    }
+
+    private fun migrateLegacyModels(target: File) {
+        val source = File(DATA_FOLDER.parent, "ModelEngine/blueprints").takeIf(File::isDirectory) ?: return
+        var copied = 0
+        source.walkTopDown().filter(File::isFile).forEach { legacy ->
+            val destination = File(target, legacy.relativeTo(source).path)
+            if (destination.exists()) {
+                warn("Skipping legacy model migration because the destination exists: $destination".toComponent(YELLOW))
+            } else {
+                destination.parentFile.mkdirs()
+                legacy.copyTo(destination, overwrite = false)
+                copied++
+            }
+        }
+        if (copied > 0) info("Migrated $copied ModelEngine file(s), preserving subfolders.".toComponent(GREEN))
     }
 
     private data class ImportedModel(

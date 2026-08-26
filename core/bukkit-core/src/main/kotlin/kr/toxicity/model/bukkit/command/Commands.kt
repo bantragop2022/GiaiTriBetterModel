@@ -69,7 +69,7 @@ private val MODEL_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.m
 private val LIMB_SUGGESTION = blockingStrings<Audience> { _, _ -> BetterModel.limbKeys() }
 
 fun startBukkitCommand() {
-    LegacyPaperCommandManager(
+    val manager = LegacyPaperCommandManager(
         PLUGIN,
         ExecutionCoordinator.simpleCoordinator(),
         SenderMapper.create<CommandSender, Audience>(
@@ -81,7 +81,8 @@ fun startBukkitCommand() {
             registerBrigadier()
             brigadierManager().setNativeNumberSuggestions(true)
         } else if (hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) registerAsynchronousCompletions()
-    }.register(
+    }
+    manager.register(
         "bettermodel",
         "All-related command.",
         { it.meta(BukkitCommandMeta.BUKKIT_DESCRIPTION, info.description.textDescription()) },
@@ -182,6 +183,7 @@ fun startBukkitCommand() {
             handler(::version)
         }
     }
+    manager.startMegCommand()
 }
 
 private fun hide(context: CommandContext<Audience>) {

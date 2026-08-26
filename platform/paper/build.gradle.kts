@@ -35,6 +35,7 @@ val generatePaperLibrary by tasks.registering {
 }
 
 tasks.shadowJar {
+    archiveFileName = "GiaiTriBetterModel-2.2.0-paper.jar"
     dependsOn(generatePaperLibrary)
     from(libraryDir)
     manifest {

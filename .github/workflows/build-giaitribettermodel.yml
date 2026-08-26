@@ -1,0 +1,36 @@
+name: Build GiaiTriBetterModel Paper
+
+on:
+  push:
+    branches: [ "bettermodel-2.2.0-paper-1.21.8" ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Build Paper distribution
+        run: ./gradlew :platform:paper:shadowJar --stacktrace
+      - name: Verify full Paper distribution
+        run: |
+          test -s build/libs/GiaiTriBetterModel-2.2.0-paper.jar
+          jar tf build/libs/GiaiTriBetterModel-2.2.0-paper.jar | grep -q 'kr/toxicity/model/paper/BetterModelPaper.class'
+          jar tf build/libs/GiaiTriBetterModel-2.2.0-paper.jar | grep -q 'paper-plugin.yml'
+          jar tf build/libs/GiaiTriBetterModel-2.2.0-paper.jar | grep -q 'kr/toxicity/model/bukkit/compatibility/mythicmobs/'
+          jar tf build/libs/GiaiTriBetterModel-2.2.0-paper.jar | grep -q 'kr/toxicity/model/bukkit/nms/v1_21_R5/'
+          jar tf build/libs/GiaiTriBetterModel-2.2.0-paper.jar | grep -q 'kr/toxicity/model/bukkit/command/MegCommandsKt.class'
+      - uses: actions/upload-artifact@v6
+        with:
+          name: GiaiTriBetterModel-2.2.0-paper
+          path: build/libs/GiaiTriBetterModel-2.2.0-paper.jar
+          if-no-files-found: error
