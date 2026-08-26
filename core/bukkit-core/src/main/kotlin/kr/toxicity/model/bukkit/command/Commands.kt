@@ -259,7 +259,7 @@ private fun version(context: CommandContext<Audience>) {
     }
 }
 
-private fun reload(context: CommandContext<Audience>) {
+internal fun reload(context: CommandContext<Audience>) {
     val audience = context.sender()
     PLATFORM.scheduler().asyncTask {
         audience.info("Start reloading. please wait...")
